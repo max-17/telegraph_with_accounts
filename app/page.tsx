@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 import SignInButton from "./components/signinButton";
+import { CreateAccountButton } from "./components/telegraph";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -21,6 +22,7 @@ export default async function Home() {
           <h1 className="truncate max-w-[300px]">{user?.image}</h1>
           <h1>{user?.id}</h1>
         </div>
+        <CreateAccountButton session={session} />
       </main>
     );
   }
