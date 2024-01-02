@@ -1,3 +1,5 @@
+import { log } from "console";
+
 const baseApiUrl: string = "https://api.telegra.ph/";
 
 // API methods
@@ -47,13 +49,6 @@ async function createAccount({
   author_name?: string;
   author_url?: string;
 }): Promise<Account> {
-  //   const queryString = new URLSearchParams({
-  //     short_name,
-  //     // author_name and author_url are optional, include them if they exist
-  //     ...(author_name && { author_name }),
-  //     ...(author_url && { author_url }),
-  //   }).toString();
-
   console.log(`url: createAcount?short_name=${short_name}`);
 
   const queryString = new URLSearchParams({
@@ -65,6 +60,116 @@ async function createAccount({
 
   return response.json();
 }
+
+/**
+TNodeElement object represents a [DOM element node]**.
+
+tag (String)
+Name of the DOM element. Available tags: a, aside, b, blockquote, br, code, em, figcaption, figure, h3, h4, hr, i, iframe, img, li, ol, p, pre, s, strong, u, ul, video.
+attrs (Object)
+Optional. Attributes of the DOM element. Key of object represents name of attribute, value represents value of attribute. Available attributes: href, src.
+children (Array of Node)
+Optional. List of child nodes for the DOM element.
+  */
+
+interface TNodeElement {
+  tag: string;
+  // arrts extends NamedNodeMap and has src, href only
+  attrs?: { src?: string; href?: string; [key: string]: string | undefined };
+  children?: (string | TNodeElement)[];
+}
+
+export function domToNode(domNode: Element): TNodeElement | string | false {
+  if (domNode.nodeType == Node.TEXT_NODE) {
+    return domNode.nodeValue || "";
+  }
+  if (domNode.nodeType != Node.ELEMENT_NODE) {
+    return false;
+  }
+  let nodeElement: TNodeElement = { tag: "", attrs: {} };
+  nodeElement.tag = domNode.nodeName.toLowerCase();
+  for (const i in domNode.attributes) {
+    const attrName = domNode.attributes[i].name;
+    if (attrName == "href" || attrName == "src") {
+      if (!nodeElement.attrs) {
+        nodeElement.attrs = {};
+      }
+      nodeElement.attrs[attrName] = domNode.attributes[i].value;
+    }
+  }
+  if (domNode.childNodes.length > 0) {
+    nodeElement.children = [];
+    for (let i = 0; i < domNode.childNodes.length; i++) {
+      const child: Element = domNode.children[i];
+      const childNode = domToNode(child);
+      if (typeof childNode !== "boolean") {
+        nodeElement.children.push(childNode);
+      }
+    }
+  }
+  return nodeElement;
+}
+
+export function nodeToDom(node: string | TNodeElement): Node {
+  if (typeof node === "string") {
+    return document.createTextNode(node);
+  }
+  let domNode: Element | DocumentFragment;
+  if (node.tag) {
+    domNode = document.createElement(node.tag);
+    if (node.attrs) {
+      for (const name in node.attrs) {
+        const value = node.attrs[name] as string;
+        domNode.setAttribute(name, value);
+      }
+    }
+  } else {
+    domNode = document.createDocumentFragment();
+  }
+  if (node.children) {
+    for (let i = 0; i < node.children.length; i++) {
+      let child = node.children[i];
+      domNode.appendChild(nodeToDom(child));
+    }
+  }
+  return domNode;
+}
+
+// type AjaxSettings = {
+//   data: {
+//     access_token: string;
+//     title: string;
+//     content: string;
+//     return_content: boolean;
+//   };
+//   type: string;
+//   dataType: string;
+//   success: (data: any) => void;
+// };
+
+// let article = document.getElementById("article");
+// if (article) {
+//   let content = domToNode(article).children;
+//   let settings: AjaxSettings = {
+//     data: {
+//       access_token: "%access_token%",
+//       title: "Title of page",
+//       content: JSON.stringify(content),
+//       return_content: true,
+//     },
+//     type: "POST",
+//     dataType: "json",
+//     success: function (data) {
+//       if (data.content) {
+//         while (article.firstChild) {
+//           article.removeChild(article.firstChild);
+//         }
+//         article.appendChild(nodeToDom({ children: data.content }));
+//       }
+//     },
+//   };
+//   $.ajax("https://api.telegra.ph/createPage", settings);
+// }
 
 /**
 Page object represents a page on Telegraph.
