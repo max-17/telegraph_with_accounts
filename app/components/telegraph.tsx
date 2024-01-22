@@ -1,10 +1,4 @@
 "use client";
-import {
-  createAccount,
-  createPage,
-  editAccountInfo,
-  editPage,
-} from "@/lib/telegraphAPI/telegraphAPI";
 import type { Session } from "next-auth";
 import { signOut } from "next-auth/react";
 import { createTelegraphAccount } from "../actions/actions";

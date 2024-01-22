@@ -1,3 +1,14 @@
+import { z } from "zod";
+
+export const accountSchema = z.object({
+  short_name: z.string(),
+  author_name: z.string().optional(),
+  author_url: z.string().optional(),
+  access_token: z.string().optional(),
+  auth_url: z.string().optional(),
+  page_count: z.number().optional(),
+});
+
 /**
 `Account` object represents a Telegraph account.
 
@@ -18,19 +29,26 @@ Optional. URL to authorize a browser on telegra.ph and connect it to a Telegraph
 
 `page_count` (Integer)
 Optional. Number of pages belonging to the Telegraph account.
+
+@params short_name: string
+@params author_name: string
+@params author_url: string
+@params access_token: string
+@params auth_url: string
+@params page_count: number
+
+@see https://telegra.ph/api#Account
  */
 
-export interface Account {
-  short_name: string;
-  author_name?: string;
-  author_url?: string;
-  access_token?: string;
-  auth_url?: string;
-  page_count?: number;
-}
+export type Account = z.infer<typeof accountSchema>;
+
+const baseNodeSchema = z.object({
+  tag: z.string(),
+  attrs: z.record(z.string()).optional(),
+});
 
 /**
-TNodeElement object represents a `DOM element node**`.
+TNodeElement object represents a `DOM element node*`.
 
 `tag` (String)
 Name of the DOM element. Available tags: `a`, `aside`, `b`, `blockquote`, `br`, `code`, `em`, `figcaption`, `figure`, `h3`, `h4`, `hr`, `i`, `iframe`, `img`, `li`, `ol`, `p`, `pre`, `s`, `strong`, `u`, `ul`, `video`.
@@ -40,14 +58,35 @@ Optional. Attributes of the DOM element. Key of object represents name of attrib
 
 `children` (Array of Node)
 Optional. List of child nodes for the DOM element.
+
+@params tag: string
+@params attrs: z.record(z.string()).optional()
+@params children: z.lazy(() => TNodeElementSchema.array())
+
+@see https://telegra.ph/api#NodeElement
 **/
 
-export interface TNodeElement {
-  tag: string;
-  // arrts extends NamedNodeMap and has src, href only
-  attrs?: { src?: string; href?: string; [key: string]: string | undefined };
-  children?: (string | TNodeElement)[];
-}
+export type TNodeElement = z.infer<typeof baseNodeSchema> & {
+  children?: TNodeElement[];
+};
+
+export const TNodeElementSchema: z.ZodType<TNodeElement> =
+  baseNodeSchema.extend({
+    children: z.lazy(() => TNodeElementSchema.array()).optional(),
+  });
+
+export const pageSchema = z.object({
+  path: z.string(),
+  url: z.string(),
+  title: z.string(),
+  description: z.string(),
+  author_name: z.string().optional(),
+  author_url: z.string().optional(),
+  image_url: z.string().optional(),
+  content: z.lazy(() => TNodeElementSchema.array()).optional(),
+  views: z.number(),
+  can_edit: z.boolean().optional(),
+});
 
 /**
   `Page` object represents a page on Telegraph.
@@ -73,7 +112,7 @@ export interface TNodeElement {
   `image_url` (String, Optional)
   Image URL of the page.
  
-  `content` (Array of Node, Optional)
+  `content` (Array of TNodeElement, Optional)
   Content of the page.
  
   `views` (Integer)
@@ -81,20 +120,27 @@ export interface TNodeElement {
  
   `can_edit` (Boolean, Optional)
   Only returned if access_token passed. True, if the target Telegraph account can edit the page.
+
+  @params path: string
+  @params url: string
+  @params title: string
+  @params description: string
+  @params author_name: string
+  @params author_url: string
+  @params image_url: string
+  @params content: TNodeElement[]
+  @params views: number
+  @params can_edit: boolean
+
+  @see https://telegra.ph/api#Page
  */
 
-export interface Page {
-  path: string;
-  url: string;
-  title: string;
-  description: string;
-  author_name?: string;
-  author_url?: string;
-  image_url?: string;
-  content?: Node[];
-  views: number;
-  can_edit?: boolean;
-}
+export type Page = z.infer<typeof pageSchema>;
+
+export const pageListSchema = z.object({
+  total_count: z.number(),
+  pages: z.array(pageSchema),
+});
 
 /**
  `PageList` object represents a list of Telegraph articles belonging to an account. Most recently created articles first.
@@ -104,9 +150,16 @@ export interface Page {
  
  `pages` (Array of Page)
  Requested pages of the target Telegraph account.
+
+  @params total_count: number
+  @params pages: Page[]
+  
+  @see https://telegra.ph/api#PageList
  **/
 
-export type PageList = {
-  total_count: number;
-  pages: Page[];
+export type PageList = z.infer<typeof pageListSchema>;
+
+export type imageUploadResponse = {
+  src: string;
+  error: string;
 };

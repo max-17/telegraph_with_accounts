@@ -1,4 +1,4 @@
-import { Account, TNodeElement, Page, PageList } from "./types";
+import { Account, TNodeElement, Page, PageList, accountSchema } from "./types";
 
 const baseApiUrl: string = "https://api.telegra.ph/";
 
@@ -27,15 +27,20 @@ export async function createAccount(
   short_name: string,
   author_name?: string,
   author_url?: string
-): Promise<any> {
+): Promise<Account> {
   const queryString = new URLSearchParams({
     short_name,
     ...(author_name && { author_name }),
     ...(author_url && { author_url }),
   }).toString();
+
   const response = await fetch(baseApiUrl + `createAccount?${queryString}`);
 
-  return response.json();
+  const { result } = await response.json();
+
+  accountSchema.parse(result);
+
+  return await result;
 }
 /**
  
