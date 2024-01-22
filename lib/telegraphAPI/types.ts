@@ -158,8 +158,3 @@ export const pageListSchema = z.object({
  **/
 
 export type PageList = z.infer<typeof pageListSchema>;
-
-export type imageUploadResponse = {
-  src: string;
-  error: string;
-};

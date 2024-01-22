@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { createAccount } from "@/lib/telegraphAPI/telegraphAPI";
-import { Account, imageUploadResponse } from "@/lib/telegraphAPI/types";
+import { Account } from "@/lib/telegraphAPI/types";
 import { Session } from "next-auth";
 
 export const createTelegraphAccount = async (session: Session) => {
@@ -22,12 +22,17 @@ export const createTelegraphAccount = async (session: Session) => {
 };
 
 export const uploadImage = async (form: FormData) => {
-  const response = await fetch("https://telegra.ph/upload", {
-    method: "POST",
-    body: form,
-  });
-  const data = await response.json();
-  // console.log(data[0].src);
-
-  return data[0].src;
+  try {
+    const response = await fetch("https://telegra.ph/upload", {
+      method: "POST",
+      body: form,
+    });
+    if (!response.ok) {
+      throw new Error(`image upload error: ${response.statusText}`);
+    }
+    const imageUrl = (await response.json())[0].src;
+    return imageUrl;
+  } catch (error) {
+    throw new Error(`image upload error: ${error}`);
+  }
 };
