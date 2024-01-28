@@ -30,7 +30,7 @@ export const uploadImage = async (form: FormData) => {
     if (!response.ok) {
       throw new Error(`image upload error: ${response.statusText}`);
     }
-    const imageUrl = (await response.json())[0].src;
+    const imageUrl = (await response.json())[0].src as string;
     return imageUrl;
   } catch (error) {
     throw new Error(`image upload error: ${error}`);

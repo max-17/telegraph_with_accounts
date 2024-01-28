@@ -4,6 +4,8 @@ import SignInButton from "./components/signinButton";
 import { CreateAccountButton } from "./components/telegraph";
 import { prisma } from "@/lib/prisma";
 import ImageUpload from "./components/imageUploader";
+import { Editor } from "@tiptap/react";
+import Tiptap from "./components/tipTap";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -12,7 +14,8 @@ export default async function Home() {
       <main className="flex min-h-screen flex-col items-center justify-between p-24">
         <SignInButton botUsername={process.env.BOT_USERNAME as string} />
         <div className="flex flex-col editor-div container max-w-[732px]">
-          <ImageUpload />
+          {/* <ImageUpload /> */}
+          <Tiptap />
         </div>
       </main>
     );

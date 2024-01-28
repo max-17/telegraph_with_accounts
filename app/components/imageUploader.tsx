@@ -23,12 +23,7 @@ export default function ImageUpload() {
   };
   return (
     <>
-      <input
-        id="file-input"
-        className="hidden"
-        type="file"
-        onInput={handleUpload}
-      />
+      <input id="file-input" hidden type="file" onInput={handleUpload} />
       <label htmlFor="file-input" className="border bg-green-500 w-fit p-2">
         upload image
       </label>
