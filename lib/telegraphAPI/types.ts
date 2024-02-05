@@ -1,3 +1,4 @@
+import { JSONContent } from "@tiptap/react";
 import { z } from "zod";
 
 export const accountSchema = z.object({
@@ -47,7 +48,12 @@ const baseNodeSchema = z.union([
 
   z.object({
     tag: z.string(),
-    attrs: z.record(z.string()).optional(),
+    attrs: z
+      .object({
+        href: z.string().optional(),
+        src: z.string().optional(),
+      })
+      .optional(),
   }),
 ]);
 
@@ -160,3 +166,34 @@ export const pageListSchema = z.object({
  **/
 
 export type PageList = z.infer<typeof pageListSchema>;
+
+/**
+ * [
+    {
+        "type": "paragraph",
+        "content": [
+            {
+                "type": "text",
+                "text": "This is a basic example of implementing images. Drag to re-order."
+            }
+        ]
+    },
+    {
+        "type": "image",
+        "attrs": {
+            "src": "https://source.unsplash.com/8xznAGy4HcY/800x400",
+            "alt": null,
+            "title": null
+        }
+    },
+    {
+        "type": "paragraph",
+        "content": [
+            {
+                "type": "text",
+                "text": "sdsadasds"
+            }
+        ]
+    },
+]
+ */
