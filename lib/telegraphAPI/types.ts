@@ -42,10 +42,14 @@ Optional. Number of pages belonging to the Telegraph account.
 
 export type Account = z.infer<typeof accountSchema>;
 
-const baseNodeSchema = z.object({
-  tag: z.string(),
-  attrs: z.record(z.string()).optional(),
-});
+const baseNodeSchema = z.union([
+  z.string(),
+
+  z.object({
+    tag: z.string(),
+    attrs: z.record(z.string()).optional(),
+  }),
+]);
 
 /**
 TNodeElement object represents a `DOM element node*`.
@@ -65,15 +69,13 @@ Optional. List of child nodes for the DOM element.
 
 @see https://telegra.ph/api#NodeElement
 **/
-
-export type TNodeElement = z.infer<typeof baseNodeSchema> & {
-  children?: TNodeElement[];
+type TNodeElement = z.infer<typeof baseNodeSchema> & {
+  children?: [TNodeElement, ...TNodeElement[]];
 };
 
-export const TNodeElementSchema: z.ZodType<TNodeElement> =
-  baseNodeSchema.extend({
-    children: z.lazy(() => TNodeElementSchema.array()).optional(),
-  });
+const TNodeElementSchema: z.ZodType<TNodeElement> = z.lazy(
+  () => baseNodeSchema
+);
 
 export const pageSchema = z.object({
   path: z.string(),

@@ -57,7 +57,10 @@ const Tiptap = () => {
 
   return (
     <>
-      <EditorContent className="h-96 border border-gray-500" editor={editor} />
+      <EditorContent
+        className="h-min-96 border border-gray-500"
+        editor={editor}
+      />
 
       <FloatingMenu editor={editor} className="absolute-left">
         <div className="flex flex-row">
@@ -90,6 +93,7 @@ const Tiptap = () => {
           H<sub>2</sub>
         </Toggle>
       </BubbleMenu>
+      <button onClick={() => console.log(editor.getJSON().content)}>log</button>
     </>
   );
 };
