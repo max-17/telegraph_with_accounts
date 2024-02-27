@@ -1,3 +1,4 @@
+import { JSONContent } from "@tiptap/react";
 import { Account, TNodeElement, Page, PageList, accountSchema } from "./types";
 
 const baseApiUrl: string = "https://api.telegra.ph/";
@@ -400,4 +401,66 @@ export async function revokeAccessToken(accessToken: string): Promise<Account> {
     auth_url: "",
     page_count: 0,
   };
+}
+
+/**
+ * JSONContent
+ * [
+    {
+        "type": "paragraph",
+        "content": [
+            {
+                "type": "text",
+                "text": "This is a basic example of implementing images. Drag to re-order."
+            }
+        ]
+    },
+    {
+        "type": "image",
+        "attrs": {
+            "src": "https://source.unsplash.com/8xznAGy4HcY/800x400",
+            "alt": null,
+            "title": null
+        }
+    },
+    {
+        "type": "paragraph",
+        "content": [
+            {
+                "type": "text",
+                "text": "sdsadasds"
+            }
+        ]
+    },
+]
+ */
+
+export function domToNode(content: Element): TNodeElement | false {
+  if (content.nodeType === Node.TEXT_NODE) {
+    return content.textContent || "";
+  }
+  if (content.nodeType != Node.ELEMENT_NODE) {
+    return false;
+  }
+  let nodeElement: TNodeElement = { tag: "" };
+  nodeElement.tag = content.nodeName.toLowerCase();
+  for (const attr of Array.from(content.attributes).filter(
+    (attr) => attr.name == "href" || attr.name == "src"
+  )) {
+    nodeElement.attrs = {};
+    nodeElement.attrs[attr.name] = attr.value;
+  }
+
+  if (content.childNodes.length > 0) {
+    for (let i = 0; i < content.childNodes.length; i++) {
+      const child = content.children[i];
+      const childNode = domToNode(child);
+      if (typeof childNode !== "boolean") {
+        if (!nodeElement.children) {
+          nodeElement.children = [childNode];
+        } else nodeElement.children.push(childNode);
+      }
+    }
+  }
+  return nodeElement;
 }

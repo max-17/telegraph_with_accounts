@@ -49,6 +49,8 @@ export default async function Home() {
       {!user.telegraphToken && <CreateAccountButton session={session} />}
       <div className="flex flex-col editor-div container max-w-[732px]">
         <ImageUpload />
+        <br />
+        <Tiptap />
       </div>
     </main>
   );

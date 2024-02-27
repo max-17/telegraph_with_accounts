@@ -10,7 +10,8 @@ import {
 import Image from "@tiptap/extension-image";
 import StarterKit from "@tiptap/starter-kit";
 import { uploadImage } from "../actions/actions";
-import React, { useCallback } from "react";
+import { TNodeElement } from "@/lib/telegraphAPI/types";
+// import { domToNode } from "@/lib/telegraphAPI/telegraphAPI";
 
 // define your extension array
 const extensions = [StarterKit, Image];
@@ -20,6 +21,39 @@ const content = `<p>This is a basic example of implementing images. Drag to re-o
 <img src="https://source.unsplash.com/K9QHL52rE2k/800x400" />`;
 
 const Tiptap = () => {
+  function domToNode(content: Element): TNodeElement | false {
+    // console.log(content.nodeType);
+
+    if (content.nodeType === Node.TEXT_NODE) {
+      return content.textContent || "";
+    }
+
+    if (content.nodeType != Node.ELEMENT_NODE) {
+      return false;
+    }
+    let nodeElement: TNodeElement = { tag: "" };
+    nodeElement.tag = content.nodeName.toLowerCase();
+    for (const attr of Array.from(content.attributes).filter(
+      (attr) => attr.name == "href" || attr.name == "src"
+    )) {
+      nodeElement.attrs = {};
+      nodeElement.attrs[attr.name] = attr.value;
+    }
+
+    if (content.children.length > 0) {
+      for (let i = 0; i < content.children.length; i++) {
+        const child = content.children[i];
+        const childNode = domToNode(child);
+        if (typeof childNode !== "boolean") {
+          if (!nodeElement.children) {
+            nodeElement.children = [childNode];
+          } else nodeElement.children.push(childNode);
+        }
+      }
+    }
+    return nodeElement;
+  }
+
   const editor = useEditor({
     extensions,
     content,
@@ -93,7 +127,9 @@ const Tiptap = () => {
           H<sub>2</sub>
         </Toggle>
       </BubbleMenu>
-      <button onClick={() => console.log(editor.getJSON().content)}>log</button>
+      <button onClick={() => console.log(domToNode(editor.view.dom))}>
+        log
+      </button>
     </>
   );
 };

@@ -45,14 +45,14 @@ export type Account = z.infer<typeof accountSchema>;
 
 const baseNodeSchema = z.union([
   z.string(),
-
   z.object({
     tag: z.string(),
     attrs: z
       .object({
-        href: z.string().optional(),
         src: z.string().optional(),
+        href: z.string().optional(),
       })
+      .and(z.record(z.string()))
       .optional(),
   }),
 ]);
@@ -75,7 +75,7 @@ Optional. List of child nodes for the DOM element.
 
 @see https://telegra.ph/api#NodeElement
 **/
-type TNodeElement = z.infer<typeof baseNodeSchema> & {
+export type TNodeElement = z.infer<typeof baseNodeSchema> & {
   children?: [TNodeElement, ...TNodeElement[]];
 };
 
@@ -166,34 +166,3 @@ export const pageListSchema = z.object({
  **/
 
 export type PageList = z.infer<typeof pageListSchema>;
-
-/**
- * [
-    {
-        "type": "paragraph",
-        "content": [
-            {
-                "type": "text",
-                "text": "This is a basic example of implementing images. Drag to re-order."
-            }
-        ]
-    },
-    {
-        "type": "image",
-        "attrs": {
-            "src": "https://source.unsplash.com/8xznAGy4HcY/800x400",
-            "alt": null,
-            "title": null
-        }
-    },
-    {
-        "type": "paragraph",
-        "content": [
-            {
-                "type": "text",
-                "text": "sdsadasds"
-            }
-        ]
-    },
-]
- */
