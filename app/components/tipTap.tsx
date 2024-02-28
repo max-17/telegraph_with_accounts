@@ -9,51 +9,18 @@ import {
 } from "@tiptap/react";
 import Image from "@tiptap/extension-image";
 import StarterKit from "@tiptap/starter-kit";
-import { uploadImage } from "../actions/actions";
-import { TNodeElement } from "@/lib/telegraphAPI/types";
-// import { domToNode } from "@/lib/telegraphAPI/telegraphAPI";
+import { publishArticle, uploadImage } from "../actions/actions";
+import { createPage, domToNode } from "@/lib/telegraphAPI/telegraphAPI";
+// import { SessionProvider } from "next-auth/react";
+import { Session } from "next-auth";
+import { useRef } from "react";
 
 // define your extension array
 const extensions = [StarterKit, Image];
 
-const content = `<p>This is a basic example of implementing images. Drag to re-order.</p>
-<img src="https://source.unsplash.com/8xznAGy4HcY/800x400" />
-<img src="https://source.unsplash.com/K9QHL52rE2k/800x400" />`;
+const content = `Content...`;
 
-const Tiptap = () => {
-  function domToNode(content: Element): TNodeElement | false {
-    // console.log(content.nodeType);
-
-    if (content.nodeType === Node.TEXT_NODE) {
-      return content.textContent || "";
-    }
-
-    if (content.nodeType != Node.ELEMENT_NODE) {
-      return false;
-    }
-    let nodeElement: TNodeElement = { tag: "" };
-    nodeElement.tag = content.nodeName.toLowerCase();
-    for (const attr of Array.from(content.attributes).filter(
-      (attr) => attr.name == "href" || attr.name == "src"
-    )) {
-      nodeElement.attrs = {};
-      nodeElement.attrs[attr.name] = attr.value;
-    }
-
-    if (content.children.length > 0) {
-      for (let i = 0; i < content.children.length; i++) {
-        const child = content.children[i];
-        const childNode = domToNode(child);
-        if (typeof childNode !== "boolean") {
-          if (!nodeElement.children) {
-            nodeElement.children = [childNode];
-          } else nodeElement.children.push(childNode);
-        }
-      }
-    }
-    return nodeElement;
-  }
-
+const Tiptap = ({ session }: { session: Session }) => {
   const editor = useEditor({
     extensions,
     content,
@@ -63,6 +30,8 @@ const Tiptap = () => {
       },
     },
   });
+
+  const titleRef = useRef<HTMLInputElement>(null);
 
   const addImage = async (e: React.FormEvent<HTMLInputElement>) => {
     if (!editor) return;
@@ -91,10 +60,19 @@ const Tiptap = () => {
 
   return (
     <>
-      <EditorContent
-        className="h-min-96 border border-gray-500"
-        editor={editor}
-      />
+      <h3>
+        <input
+          className="bg-inherit my-4 w-full"
+          placeholder="Title..."
+          ref={titleRef}
+          required
+          type="text"
+          id="title"
+          name="title"
+        />
+      </h3>
+
+      <EditorContent className="h-min-96" editor={editor} />
 
       <FloatingMenu editor={editor} className="absolute-left">
         <div className="flex flex-row">
@@ -127,8 +105,20 @@ const Tiptap = () => {
           H<sub>2</sub>
         </Toggle>
       </BubbleMenu>
-      <button onClick={() => console.log(domToNode(editor.view.dom))}>
-        log
+      <button
+        onClick={async () => {
+          const content = domToNode(editor.view.dom);
+          if (!content || !content?.children) {
+            console.error("content cannot be empty!");
+          } else
+            publishArticle(
+              content.children,
+              titleRef.current?.value || "",
+              session.user.id
+            );
+        }}
+      >
+        publish
       </button>
     </>
   );

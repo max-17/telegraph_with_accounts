@@ -1,8 +1,12 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { createAccount } from "@/lib/telegraphAPI/telegraphAPI";
-import { Account } from "@/lib/telegraphAPI/types";
+import {
+  createAccount,
+  createPage,
+  domToNode,
+} from "@/lib/telegraphAPI/telegraphAPI";
+import { Account, TNodeElement } from "@/lib/telegraphAPI/types";
 import { Session } from "next-auth";
 
 export const createTelegraphAccount = async (session: Session) => {
@@ -34,5 +38,39 @@ export const uploadImage = async (form: FormData) => {
     return imageUrl;
   } catch (error) {
     throw new Error(`image upload error: ${error}`);
+  }
+};
+
+export const publishArticle = async (
+  content: TNodeElement[],
+  title: string,
+  userId: string
+) => {
+  // const node = domToNode(content);
+  if (content.length === 0 || title == "") {
+    throw new Error("content and title cannot be empty!");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { telegramId: parseInt(userId) },
+  });
+  // console.log(user?.telegraphToken, title, content, user?.name || undefined);
+  if (user?.telegraphToken) {
+    try {
+      const response = await createPage(
+        user.telegraphToken,
+        title,
+        content,
+        user.name || undefined
+      );
+      console.log(await response.json());
+
+      if (!response.ok) {
+        throw new Error(`Error in publishing article: ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      throw new Error(`Publishing error: ${error}`);
+    }
   }
 };

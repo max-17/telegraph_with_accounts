@@ -29,13 +29,19 @@ export async function createAccount(
   author_name?: string,
   author_url?: string
 ): Promise<Account> {
-  const queryString = new URLSearchParams({
+  const data = {
     short_name,
     ...(author_name && { author_name }),
     ...(author_url && { author_url }),
-  }).toString();
+  };
 
-  const response = await fetch(baseApiUrl + `createAccount?${queryString}`);
+  const response = await fetch(baseApiUrl + "createAccount", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
 
   const { result } = await response.json();
 
@@ -204,25 +210,37 @@ export async function editAccountInfo(): Promise<Account> {
 export async function createPage(
   access_token: string,
   title: string,
-  content: Node[],
+  content: TNodeElement[],
   author_name?: string,
   author_url?: string
-): Promise<Page> {
-  const queryString = new URLSearchParams({
+  // change this to Promise<Page>
+): Promise<Response> {
+  const data = {
     access_token,
     title,
-    content: JSON.stringify(content),
+    content,
     ...(author_name && { author_name }),
     ...(author_url && { author_url }),
-  }).toString();
+    return_content: true,
+  };
+  console.log(JSON.stringify(data));
 
-  const response = await fetch(baseApiUrl + `createPage?${queryString}`, {
+  // const queryString = new URLSearchParams({
+  //   access_token,
+  //   title,
+  //   content,
+  //   ...(author_name && { author_name }),
+  //   ...(author_url && { author_url }),
+  //   return_content: "true",
+  // }).toString();
+
+  return fetch(baseApiUrl + "createPage", {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
   });
-
-  const data: Page = await response.json();
-
-  return data;
 }
 
 // getPage
@@ -435,32 +453,35 @@ export async function revokeAccessToken(accessToken: string): Promise<Account> {
 ]
  */
 
-export function domToNode(content: Element): TNodeElement | false {
+export function domToNode(content: Node): TNodeElement | null {
   if (content.nodeType === Node.TEXT_NODE) {
     return content.textContent || "";
   }
-  if (content.nodeType != Node.ELEMENT_NODE) {
-    return false;
-  }
-  let nodeElement: TNodeElement = { tag: "" };
-  nodeElement.tag = content.nodeName.toLowerCase();
-  for (const attr of Array.from(content.attributes).filter(
-    (attr) => attr.name == "href" || attr.name == "src"
-  )) {
-    nodeElement.attrs = {};
-    nodeElement.attrs[attr.name] = attr.value;
+  if (content.nodeType !== Node.ELEMENT_NODE) {
+    return null;
   }
 
+  let nodeElement: TNodeElement = { tag: "" };
+  nodeElement.tag = content.nodeName.toLowerCase();
+  const element = content as Element;
+  if (element.attributes)
+    for (const attr of Array.from(element.attributes).filter(
+      (attr) => attr.name == "href" || attr.name == "src"
+    )) {
+      nodeElement.attrs = {};
+      nodeElement.attrs[attr.name] = attr.value;
+    }
+
   if (content.childNodes.length > 0) {
+    nodeElement.children = [];
     for (let i = 0; i < content.childNodes.length; i++) {
-      const child = content.children[i];
+      const child = content.childNodes[i];
       const childNode = domToNode(child);
-      if (typeof childNode !== "boolean") {
-        if (!nodeElement.children) {
-          nodeElement.children = [childNode];
-        } else nodeElement.children.push(childNode);
+      if (childNode) {
+        nodeElement.children.push(childNode);
       }
     }
   }
+
   return nodeElement;
 }

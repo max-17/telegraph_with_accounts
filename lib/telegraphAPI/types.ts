@@ -76,7 +76,7 @@ Optional. List of child nodes for the DOM element.
 @see https://telegra.ph/api#NodeElement
 **/
 export type TNodeElement = z.infer<typeof baseNodeSchema> & {
-  children?: [TNodeElement, ...TNodeElement[]];
+  children?: TNodeElement[];
 };
 
 const TNodeElementSchema: z.ZodType<TNodeElement> = z.lazy(

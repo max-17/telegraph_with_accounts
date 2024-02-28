@@ -4,7 +4,6 @@ import SignInButton from "./components/signinButton";
 import { CreateAccountButton } from "./components/telegraph";
 import { prisma } from "@/lib/prisma";
 import ImageUpload from "./components/imageUploader";
-import { Editor } from "@tiptap/react";
 import Tiptap from "./components/tipTap";
 
 export default async function Home() {
@@ -15,7 +14,6 @@ export default async function Home() {
         <SignInButton botUsername={process.env.BOT_USERNAME as string} />
         <div className="flex flex-col editor-div container max-w-[732px]">
           {/* <ImageUpload /> */}
-          <Tiptap />
         </div>
       </main>
     );
@@ -50,7 +48,7 @@ export default async function Home() {
       <div className="flex flex-col editor-div container max-w-[732px]">
         <ImageUpload />
         <br />
-        <Tiptap />
+        <Tiptap session={session} />
       </div>
     </main>
   );
